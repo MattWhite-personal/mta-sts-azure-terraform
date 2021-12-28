@@ -1,3 +1,20 @@
+
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-mtasts"
+  location = var.location
+}
+
+resource "azurerm_dns_zone" "dns-zone" {
+  name                = "${var.DOMAIN}"
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+locals {
+  tls_rpt_email = length(split("@", var.REPORTING_EMAIL)) == 2 ? var.REPORTING_EMAIL : "${var.REPORTING_EMAIL}@${var.DOMAIN}"
+  policyhash   = formatdate("YYYYMMDDhhmmss",timestamp())
+  mx_records   = split(",", var.MX)
+}
+
 resource "azurerm_storage_account" "stmtasts" {
     name                        = "stmtasts"
     resource_group_name         = azurerm_resource_group.rg.name
@@ -10,10 +27,6 @@ resource "azurerm_storage_account" "stmtasts" {
       index_document = "index.htm"
       error_404_document = "error.htm"
     }
-
-    tags = {
-        environment = "Terraform Demo"
-    }
 }
 
 resource "azurerm_storage_blob" "mta-sts" {
@@ -25,7 +38,7 @@ resource "azurerm_storage_blob" "mta-sts" {
   source_content         = <<EOF
 version: STSv1
 mode: ${var.MTASTSMODE}
-${join("", formatlist("mx: %s\n", var.MX))}max_age: ${var.max_age}
+${join("", formatlist("mx: %s\n", local.mx_records))}max_age: ${var.MAX_AGE}
   EOF
 }
 
@@ -93,7 +106,7 @@ resource "azurerm_dns_cname_record" "mta-sts-cname" {
 }
 
 resource "azurerm_dns_cname_record" "cdnverify-mta-sts" {
-  name                = "cnverity.${azurerm_dns_cname_record.mta-sts-cname.name}"
+  name                = "cdnverity.${azurerm_dns_cname_record.mta-sts-cname.name}"
   zone_name           = azurerm_dns_zone.test-mjw-co-uk.name
   resource_group_name = azurerm_resource_group.rg.name
   ttl                 = 300
@@ -107,7 +120,7 @@ resource "azurerm_dns_txt_record" "mta-sts" {
   ttl                 = 300
 
   record {
-    value = "v=STSv1; id=${random_id.randomId.hex}"
+    value = "v=STSv1; id=${local.policyhash}"
   }
 }
 
@@ -124,13 +137,6 @@ resource "azurerm_dns_txt_record" "smtp-tls" {
   ttl                 = 300
 
   record {
-    value = "v=TLSRPTv1; rua=tls-rpt@${azurerm_dns_zone.test-mjw-co-uk.name}"
+    value = "v=TLSRPTv1; rua=${local.tls_rpt_email}"
   }
-}
-
-resource "null_resource" "enable-https" {
-  provisioner "local-exec" {
-    command = "call az cdn custom-domain enable-https -g ${azurerm_resource_group.rg.name} --profile-name ${azurerm_cdn_profile.cdnmtasts.name} --endpoint-name ${azurerm_cdn_endpoint.mtastsendpoint.name} -n ${azurerm_cdn_endpoint_custom_domain.mtastscustomdomain.name} --min-tls-version 1.2"
-  }
-  depends_on = [azurerm_cdn_endpoint_custom_domain.mtastscustomdomain]
 }

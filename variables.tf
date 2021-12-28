@@ -3,16 +3,6 @@ variable "location" {
   default = "uksouth"
 }
 
-variable "suffix" {
-  #type = string
-  default = {
-    uksouth = "uks"
-    ukwest = "ukw"
-    westeurope = "weu"
-    northeurope = "neu"
-  }
-}
-
 variable "DOMAIN" {
   type        = string
   description = "The domain MTA-STS/TLS-RPT is being deployed for."
@@ -24,7 +14,7 @@ variable "MTASTSMODE" {
   description = "MTA-STS policy 'mode'. Either 'testing' or 'enforce'."
 }
 
-variable "max_age" {
+variable "MAX_AGE" {
   type        = string
   default     = "86400"
   description = "MTA-STS max_age. Time in seconds the policy should be cached. Default is 1 day"
@@ -32,11 +22,11 @@ variable "max_age" {
 
 variable "MX" {
   type        = string
-  description = "'mx' value for MTA-STS policy. List of MX hostnames to be included in MTA-STS policy"
+  description = "comma separated string of 'mx' records that should be included in mta-sts policy"
 }
 
-variable "reporting_email" {
+variable "REPORTING_EMAIL" {
   type        = string
-  default     = ""
+  default     = "tls-rpt"
   description = "(Optional) Email to use for TLS-RPT reporting."
 }
