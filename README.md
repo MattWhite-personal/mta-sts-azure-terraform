@@ -2,24 +2,25 @@
 
 This repo is inspired by the UK NCSC [terraform-aws-mtasts](https://github.com/ukncsc/terraform-aws-mtasts) module to deploy [MTS-STS](https://tools.ietf.org/html/rfc8461) and [TLS-RPT](https://tools.ietf.org/html/rfc8460) policy for a domin in Microsoft Azure using [Terraform](https://www.terraform.io/).
 
-It leverages the following Azure capabilities:
-* Resource Group
-* DNS Zone to host MTA-STS and TLS-RPT records as well as 
-* Storage Account (with static website)
-* CDN endpoint for custom domain
+The module requires the following core configuration to be in place already:
+* existing Azure Resource Group that will be used to deploy the configuration
+* DNS zone for the domain in scope to reside in the same resource group
+
+The module then deploys the following additional resources:
+* Storage account to host the mta-sts policy file
+* Static website linked to the storage account
+* CDN Profile and endpoint to support hosting the custom mta-sts.domain.com record
+* DNS CNAME records in the existing dns zone for the CDN endpoint
+* DNS TXT records to setup TLS-RPT and MTA-STS policy entries
 
 ## Limitations of current code
 
 As discussed on the [azurerm_cdn_endpoint_custom_domain](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_endpoint_custom_domain) docs pages it is not possible to enable HTTPs using Terraform and this just needs to be enabled once after initial deployment.
 
-## How to use this code
-
-
-This consists of using CloudFront/S3 with a Custom Domain to host the MTA-STS policy, with a TLS certificate provided by AWS ACM. It uses Route53 to configure the DNS portions of both MTA-STS and TLS-RPT.
 
 ## How to use this Module
 
-This module assumes AWS Account with access to Route53, CloudFront, S3, and ACM, which also hosts the DNS (in Route53) for the domain you wish to deploy MTA-STS/TLS-RPT.
+This module assumes that all the following required resources already exist within an accessible Azure subscription. Use the code block below to add to your existing Terraform configuration to deploy the code and repeat for each domain in scope
 
 ```terraform
 module "mtastspolicy_tftest" {
@@ -32,3 +33,8 @@ module "mtastspolicy_tftest" {
 }
 
 ```
+
+After the initial deployment you can enable the HTTPs custom domain on the CDN Endpoint using the following Azure CLI command, substituting the relevant variables
+````
+az cdn custom-domain enable-https -g <<resource_group>> --profile-name cdnmtasts --endpoint-name mtasts-endpoint -n cdncd-mtastsendpoint --min-tls-version 1.2
+````
