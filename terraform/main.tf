@@ -1,7 +1,7 @@
 locals {
   tls_rpt_email = length(split("@", var.REPORTING_EMAIL)) == 2 ? var.REPORTING_EMAIL : "${var.REPORTING_EMAIL}@${var.DOMAIN}"
   policyhash   = formatdate("YYYYMMDDhhmmss",timestamp())
-  mx_records   = split(",", var.MX)
+  #mx_records   = split(",", var.MX)
 }
 
 data "azurerm_resource_group" "rg" {
@@ -36,7 +36,7 @@ resource "azurerm_storage_blob" "mta-sts" {
   source_content         = <<EOF
 version: STSv1
 mode: ${var.MTASTSMODE}
-${join("", formatlist("mx: %s\n", local.mx_records))}max_age: ${var.MAX_AGE}
+${join("", formatlist("mx: %s\n", var.MX))}max_age: ${var.MAX_AGE}
   EOF
 }
 
