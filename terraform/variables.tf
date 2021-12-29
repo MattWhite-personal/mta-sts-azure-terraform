@@ -21,7 +21,7 @@ variable "MAX_AGE" {
 }
 
 variable "MX" {
-  type        = list(any)
+  type        = list(string)
   description = "list of 'mx' records that should be included in mta-sts policy"
 }
 
