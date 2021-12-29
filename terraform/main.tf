@@ -36,7 +36,7 @@ resource "azurerm_storage_blob" "mta-sts" {
   content_type           = "text/plain"
   source_content         = <<EOF
 version: STSv1
-mode: ${var.MTASTSMODE}
+mode: ${var.mtastsmode}
 ${join("", formatlist("mx: %s\n", var.MX))}max_age: ${var.MAX_AGE}
   EOF
 }
