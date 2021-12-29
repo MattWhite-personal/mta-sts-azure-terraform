@@ -13,6 +13,12 @@ jobs:
         uses: seed-of-apricot/issue-list-readme@v1.1.0
         with:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          pattern: "<!-- issueTableDemo -->"
+          pattern: "<!-- issueTable -->"
           labels: "good first issue"
           state: "open"
+      - name: add-and-commit
+        uses: EndBug/add-and-commit@v4
+        with:
+          message: README.md has been re-written
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
