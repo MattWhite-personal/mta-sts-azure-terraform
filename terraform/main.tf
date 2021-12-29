@@ -10,7 +10,7 @@ data "azurerm_resource_group" "rg" {
 
 data "azurerm_dns_zone" "dns-zone" {
   name                = var.DOMAIN
-  resource_group_name = data.azurerm_resource_group.rg
+  resource_group_name = data.azurerm_resource_group.rg.name
 }
 
 resource "azurerm_storage_account" "stmtasts" {
