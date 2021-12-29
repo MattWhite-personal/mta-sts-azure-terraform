@@ -22,12 +22,13 @@ This consists of using CloudFront/S3 with a Custom Domain to host the MTA-STS po
 This module assumes AWS Account with access to Route53, CloudFront, S3, and ACM, which also hosts the DNS (in Route53) for the domain you wish to deploy MTA-STS/TLS-RPT.
 
 ```terraform
-module "mtastspolicy_examplecom" {
-  source          = "github.com/ukncsc/terraform-aws-mtasts"
-  zone_id         = "Z00AAAAAAA0A0A"
-  domain          = "example.com"
-  mx              = ["mail.example.com"]
-  mode            = "testing"
-  reporting_email = "tlsreporting@example.com"
+module "mtastspolicy_tftest" {
+  source          = "github.com/MattWhite-personal/terraform-azure-mtasts/terraform"
+  resource_group  = "resource-group-name"
+  DOMAIN          = "domainname.co.uk"
+  MTASTSMODE      = "testing"
+  MX              = ["mx1.domain.com","mx2.domain.com"]
+  REPORTING_EMAIL = "tls-rpt"
 }
+
 ```
