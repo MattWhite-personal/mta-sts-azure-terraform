@@ -1,7 +1,8 @@
 locals {
   tls_rpt_email = length(split("@", var.REPORTING_EMAIL)) == 2 ? var.REPORTING_EMAIL : "${var.REPORTING_EMAIL}@${var.DOMAIN}"
   policyhash   = formatdate("YYYYMMDDhhmmss",timestamp())
-  #mx_records   = split(",", var.MX)
+  cdn_prefix   = lower(replace(var.DOMAIN,"/\\W|_|\\s/","-"))
+  storage_prefix = replace(local.cdn_prefix,"-","")
 }
 
 data "azurerm_resource_group" "rg" {
@@ -14,7 +15,7 @@ data "azurerm_dns_zone" "dns-zone" {
 }
 
 resource "azurerm_storage_account" "stmtasts" {
-    name                        = "stmtasts"
+    name                        = "${local.storage_prefix}stmtasts"
     resource_group_name         = data.azurerm_resource_group.rg.name
     location                    = var.location
     account_replication_type    = "LRS"
@@ -59,20 +60,20 @@ resource "azurerm_storage_blob" "error" {
 }
 
 resource "azurerm_cdn_profile" "cdnmtasts" {
-  name                = "cdnmtasts"
+  name                = "${local.cdn_prefix}-cdnmtasts"
   location            = "global"
   resource_group_name = data.azurerm_resource_group.rg.name
   sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "mtastsendpoint" {
-  name                = "mtasts-endpoint"
+  name                = "${local.cdn_prefix}-mtasts-endpoint"
   profile_name        = azurerm_cdn_profile.cdnmtasts.name
   location            = "global"
   resource_group_name = data.azurerm_resource_group.rg.name
 
   origin {
-    name      = "mtasts-endpoint"
+    name      = "${local.cdn_prefix}-mtasts-endpoint"
     host_name = azurerm_storage_account.stmtasts.primary_web_host
   }
 
@@ -92,6 +93,12 @@ resource "azurerm_cdn_endpoint" "mtastsendpoint" {
       protocol      = "Https"
     }
   }
+}
+
+resource "azurerm_cdn_endpoint_custom_domain" "mtastscustomdomain" {
+  name            = "${local.cdn_prefix}-mtastsendpoint"
+  cdn_endpoint_id = azurerm_cdn_endpoint.mtastsendpoint.id
+  host_name       = "${azurerm_dns_cname_record.mta-sts-cname.name}.${data.azurerm_dns_zone.dns-zone.name}"
 }
 
 resource "azurerm_dns_cname_record" "mta-sts-cname" {
@@ -120,12 +127,6 @@ resource "azurerm_dns_txt_record" "mta-sts" {
   record {
     value = "v=STSv1; id=${local.policyhash}"
   }
-}
-
-resource "azurerm_cdn_endpoint_custom_domain" "mtastscustomdomain" {
-  name            = "cdncd-mtastsendpoint"
-  cdn_endpoint_id = azurerm_cdn_endpoint.mtastsendpoint.id
-  host_name       = "${azurerm_dns_cname_record.mta-sts-cname.name}.${data.azurerm_dns_zone.dns-zone.name}"
 }
 
 resource "azurerm_dns_txt_record" "smtp-tls" {
