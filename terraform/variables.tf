@@ -8,7 +8,7 @@ variable "DOMAIN" {
   description = "The domain MTA-STS/TLS-RPT is being deployed for."
 }
 
-variable "MTASTSMODE" {
+variable "mtastsmode" {
   type        = string
   default     = "testing"
   description = "MTA-STS policy 'mode'. Either 'testing' or 'enforce'."
