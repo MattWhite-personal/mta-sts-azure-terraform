@@ -1,5 +1,5 @@
 variable "location" {
-  type = string
+  type    = string
   default = "uksouth"
 }
 
@@ -21,7 +21,7 @@ variable "MAX_AGE" {
 }
 
 variable "MX" {
-  type        = list
+  type        = list(any)
   description = "list of 'mx' records that should be included in mta-sts policy"
 }
 
@@ -32,6 +32,6 @@ variable "REPORTING_EMAIL" {
 }
 
 variable "resource_group" {
-  type = string
+  type        = string
   description = "resource group that contains existing resources"
 }
