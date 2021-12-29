@@ -4,15 +4,14 @@ locals {
   mx_records   = split(",", var.MX)
 }
 
-data "azurerm_dns_zone" "dns-zone" {
-  name                = var.DOMAIN
-  resource_group_name = data.rg
-}
-
 data "azurerm_resource_group" "rg" {
   name = var.resource_group
 }
 
+data "azurerm_dns_zone" "dns-zone" {
+  name                = var.DOMAIN
+  resource_group_name = data.rg
+}
 
 resource "azurerm_storage_account" "stmtasts" {
     name                        = "stmtasts"
