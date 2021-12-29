@@ -2,7 +2,7 @@ locals {
   tls_rpt_email = length(split("@", var.REPORTING_EMAIL)) == 2 ? var.REPORTING_EMAIL : "${var.REPORTING_EMAIL}@${var.DOMAIN}"
   policyhash   = formatdate("YYYYMMDDhhmmss",timestamp())
   cdn_prefix   = lower(replace(var.DOMAIN,"/\\W|_|\\s/","-"))
-  storage_prefix = replace(local.cdn_prefix,"-","")
+  storage_prefix = substr(replace(local.cdn_prefix,"-",""),0,16)
 }
 
 data "azurerm_resource_group" "rg" {
@@ -15,7 +15,7 @@ data "azurerm_dns_zone" "dns-zone" {
 }
 
 resource "azurerm_storage_account" "stmtasts" {
-    name                        = "${local.storage_prefix}stmtasts"
+    name                        = "st${local.storage_prefix}mtasts"
     resource_group_name         = data.azurerm_resource_group.rg.name
     location                    = var.location
     account_replication_type    = "LRS"
