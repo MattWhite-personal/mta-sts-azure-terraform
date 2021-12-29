@@ -60,20 +60,20 @@ resource "azurerm_storage_blob" "error" {
 }
 
 resource "azurerm_cdn_profile" "cdnmtasts" {
-  name                = "${local.cdn_prefix}-cdnmtasts"
+  name                = "cdn-${local.cdn_prefix}"
   location            = "global"
   resource_group_name = data.azurerm_resource_group.rg.name
   sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "mtastsendpoint" {
-  name                = "${local.cdn_prefix}-mtasts-endpoint"
+  name                = "mtasts-endpoint"
   profile_name        = azurerm_cdn_profile.cdnmtasts.name
   location            = "global"
   resource_group_name = data.azurerm_resource_group.rg.name
 
   origin {
-    name      = "${local.cdn_prefix}-mtasts-endpoint"
+    name      = "mtasts-endpoint"
     host_name = azurerm_storage_account.stmtasts.primary_web_host
   }
 
@@ -96,7 +96,7 @@ resource "azurerm_cdn_endpoint" "mtastsendpoint" {
 }
 
 resource "azurerm_cdn_endpoint_custom_domain" "mtastscustomdomain" {
-  name            = "${local.cdn_prefix}-mtastsendpoint"
+  name            = "${local.cdn_prefix}"
   cdn_endpoint_id = azurerm_cdn_endpoint.mtastsendpoint.id
   host_name       = "${azurerm_dns_cname_record.mta-sts-cname.name}.${data.azurerm_dns_zone.dns-zone.name}"
 }
@@ -107,7 +107,6 @@ resource "azurerm_dns_cname_record" "mta-sts-cname" {
   resource_group_name = data.azurerm_resource_group.rg.name
   ttl                 = 300
   target_resource_id = azurerm_cdn_endpoint.mtastsendpoint.id
-  depends_on          = [azurerm_cdn_endpoint.mtastsendpoint]
 }
 
 resource "azurerm_dns_cname_record" "cdnverify-mta-sts" {
