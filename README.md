@@ -40,3 +40,8 @@ After the initial deployment you can enable the HTTPs custom domain on the CDN E
 ````
 az cdn custom-domain enable-https -g <<resource_group>> --profile-name cdnmtasts --endpoint-name mtasts-endpoint -n cdncd-mtastsendpoint --min-tls-version 1.2
 ````
+
+# Issues that need further work
+<!-- issueTable -->
+
+<!-- issueTable -->
