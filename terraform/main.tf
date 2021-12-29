@@ -67,7 +67,7 @@ resource "azurerm_cdn_profile" "cdnmtasts" {
 }
 
 resource "azurerm_cdn_endpoint" "mtastsendpoint" {
-  name                = "mtasts-endpoint"
+  name                = "${local.cdn_prefix}"
   profile_name        = azurerm_cdn_profile.cdnmtasts.name
   location            = "global"
   resource_group_name = data.azurerm_resource_group.rg.name
