@@ -71,6 +71,7 @@ resource "azurerm_cdn_endpoint" "mtastsendpoint" {
   profile_name        = azurerm_cdn_profile.cdnmtasts.name
   location            = "global"
   resource_group_name = data.azurerm_resource_group.rg.name
+  depends_on          = [azurerm_dns_cname_record.mta-sts-cname, azurerm_dns_cname_record.cdnverify-mta-sts]
 
   origin {
     name      = "mtasts-endpoint"
