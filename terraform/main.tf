@@ -1,23 +1,22 @@
-
-resource "azurerm_resource_group" "rg" {
-  name     = "rg-mtasts"
-  location = var.location
-}
-
-resource "azurerm_dns_zone" "dns-zone" {
-  name                = "${var.DOMAIN}"
-  resource_group_name = azurerm_resource_group.rg.name
-}
-
 locals {
   tls_rpt_email = length(split("@", var.REPORTING_EMAIL)) == 2 ? var.REPORTING_EMAIL : "${var.REPORTING_EMAIL}@${var.DOMAIN}"
   policyhash   = formatdate("YYYYMMDDhhmmss",timestamp())
   mx_records   = split(",", var.MX)
 }
 
+data "azurerm_dns_zone" "dns-zone" {
+  name                = var.DOMAIN
+  resource_group_name = data.rg
+}
+
+data "azurerm_resource_group" "rg" {
+  name = var.resource_group
+}
+
+
 resource "azurerm_storage_account" "stmtasts" {
     name                        = "stmtasts"
-    resource_group_name         = azurerm_resource_group.rg.name
+    resource_group_name         = data.azurerm_resource_group.rg.name
     location                    = var.location
     account_replication_type    = "LRS"
     account_tier                = "Standard"
@@ -63,7 +62,7 @@ resource "azurerm_storage_blob" "error" {
 resource "azurerm_cdn_profile" "cdnmtasts" {
   name                = "cdnmtasts"
   location            = "global"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = data.azurerm_resource_group.rg.name
   sku                 = "Standard_Microsoft"
 }
 
@@ -71,7 +70,7 @@ resource "azurerm_cdn_endpoint" "mtastsendpoint" {
   name                = "mtasts-endpoint"
   profile_name        = azurerm_cdn_profile.cdnmtasts.name
   location            = "global"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = data.azurerm_resource_group.rg.name
 
   origin {
     name      = "mtasts-endpoint"
@@ -98,8 +97,8 @@ resource "azurerm_cdn_endpoint" "mtastsendpoint" {
 
 resource "azurerm_dns_cname_record" "mta-sts-cname" {
   name                = "mta-sts"
-  zone_name           = azurerm_dns_zone.test-mjw-co-uk.name
-  resource_group_name = azurerm_resource_group.rg.name
+  zone_name           = data.azurerm_dns_zone.dns-zone.name
+  resource_group_name = data.azurerm_resource_group.rg.name
   ttl                 = 300
   target_resource_id = azurerm_cdn_endpoint.mtastsendpoint.id
   depends_on          = [azurerm_cdn_endpoint.mtastsendpoint]
@@ -107,16 +106,16 @@ resource "azurerm_dns_cname_record" "mta-sts-cname" {
 
 resource "azurerm_dns_cname_record" "cdnverify-mta-sts" {
   name                = "cdnverity.${azurerm_dns_cname_record.mta-sts-cname.name}"
-  zone_name           = azurerm_dns_zone.test-mjw-co-uk.name
-  resource_group_name = azurerm_resource_group.rg.name
+  zone_name           = data.azurerm_dns_zone.dns-zone.name
+  resource_group_name = data.azurerm_resource_group.rg.name
   ttl                 = 300
   record              = "cdnverify.${azurerm_cdn_endpoint.mtastsendpoint.name}.azureedge.net"
 }
 
 resource "azurerm_dns_txt_record" "mta-sts" {
   name                = "_mta-sts"
-  zone_name           = azurerm_dns_zone.test-mjw-co-uk.name
-  resource_group_name = azurerm_resource_group.rg.name
+  zone_name           = data.azurerm_dns_zone.dns-zone.name
+  resource_group_name = data.azurerm_resource_group.rg.name
   ttl                 = 300
 
   record {
@@ -127,13 +126,13 @@ resource "azurerm_dns_txt_record" "mta-sts" {
 resource "azurerm_cdn_endpoint_custom_domain" "mtastscustomdomain" {
   name            = "cdncd-mtastsendpoint"
   cdn_endpoint_id = azurerm_cdn_endpoint.mtastsendpoint.id
-  host_name       = "${azurerm_dns_cname_record.mta-sts-cname.name}.${azurerm_dns_zone.test-mjw-co-uk.name}"
+  host_name       = "${azurerm_dns_cname_record.mta-sts-cname.name}.${data.azurerm_dns_zone.dns-zone.name}"
 }
 
 resource "azurerm_dns_txt_record" "smtp-tls" {
   name                = "_smtp._tls"
-  zone_name           = azurerm_dns_zone.test-mjw-co-uk.name
-  resource_group_name = azurerm_resource_group.rg.name
+  zone_name           = data.azurerm_dns_zone.dns-zone.name
+  resource_group_name = data.azurerm_resource_group.rg.name
   ttl                 = 300
 
   record {

@@ -30,3 +30,8 @@ variable "REPORTING_EMAIL" {
   default     = "tls-rpt"
   description = "(Optional) Email to use for TLS-RPT reporting."
 }
+
+variable "resource_group" {
+  type = "string"
+  description = "resource group that contains existing resources"
+}
