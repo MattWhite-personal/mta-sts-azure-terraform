@@ -1,5 +1,5 @@
 variable "location" {
-  type = string
+  type    = string
   default = "uksouth"
 }
 
@@ -8,7 +8,7 @@ variable "DOMAIN" {
   description = "The domain MTA-STS/TLS-RPT is being deployed for."
 }
 
-variable "MTASTSMODE" {
+variable "mtastsmode" {
   type        = string
   default     = "testing"
   description = "MTA-STS policy 'mode'. Either 'testing' or 'enforce'."
@@ -21,7 +21,7 @@ variable "MAX_AGE" {
 }
 
 variable "MX" {
-  type        = list
+  type        = list(any)
   description = "list of 'mx' records that should be included in mta-sts policy"
 }
 
@@ -32,6 +32,6 @@ variable "REPORTING_EMAIL" {
 }
 
 variable "resource_group" {
-  type = string
+  type        = string
   description = "resource group that contains existing resources"
 }

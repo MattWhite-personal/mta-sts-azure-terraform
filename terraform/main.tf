@@ -1,8 +1,8 @@
 locals {
-  tls_rpt_email = length(split("@", var.REPORTING_EMAIL)) == 2 ? var.REPORTING_EMAIL : "${var.REPORTING_EMAIL}@${var.DOMAIN}"
-  policyhash   = formatdate("YYYYMMDDhhmmss",timestamp())
-  cdn_prefix   = lower(replace(var.DOMAIN,"/\\W|_|\\s/","-"))
-  storage_prefix = substr(replace(local.cdn_prefix,"-",""),0,16)
+  tls_rpt_email  = length(split("@", var.REPORTING_EMAIL)) == 2 ? var.REPORTING_EMAIL : "${var.REPORTING_EMAIL}@${var.DOMAIN}"
+  policyhash     = formatdate("YYYYMMDDhhmmss", timestamp())
+  cdn_prefix     = lower(replace(var.DOMAIN, "/\\W|_|\\s/", "-"))
+  storage_prefix = substr(replace(local.cdn_prefix, "-", ""), 0, 16)
 }
 
 data "azurerm_resource_group" "rg" {
@@ -15,17 +15,17 @@ data "azurerm_dns_zone" "dns-zone" {
 }
 
 resource "azurerm_storage_account" "stmtasts" {
-    name                        = "st${local.storage_prefix}mtasts"
-    resource_group_name         = data.azurerm_resource_group.rg.name
-    location                    = var.location
-    account_replication_type    = "LRS"
-    account_tier                = "Standard"
-    min_tls_version             = "TLS1_2"
-    account_kind                = "StorageV2"
-    static_website {
-      index_document = "index.htm"
-      error_404_document = "error.htm"
-    }
+  name                     = "st${local.storage_prefix}mtasts"
+  resource_group_name      = data.azurerm_resource_group.rg.name
+  location                 = var.location
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
+  min_tls_version          = "TLS1_2"
+  account_kind             = "StorageV2"
+  static_website {
+    index_document     = "index.htm"
+    error_404_document = "error.htm"
+  }
 }
 
 resource "azurerm_storage_blob" "mta-sts" {
@@ -36,7 +36,7 @@ resource "azurerm_storage_blob" "mta-sts" {
   content_type           = "text/plain"
   source_content         = <<EOF
 version: STSv1
-mode: ${var.MTASTSMODE}
+mode: ${var.mtastsmode}
 ${join("", formatlist("mx: %s\n", var.MX))}max_age: ${var.MAX_AGE}
   EOF
 }
@@ -67,7 +67,7 @@ resource "azurerm_cdn_profile" "cdnmtasts" {
 }
 
 resource "azurerm_cdn_endpoint" "mtastsendpoint" {
-  name                = "${local.cdn_prefix}"
+  name                = local.cdn_prefix
   profile_name        = azurerm_cdn_profile.cdnmtasts.name
   location            = "global"
   resource_group_name = data.azurerm_resource_group.rg.name
@@ -96,7 +96,7 @@ resource "azurerm_cdn_endpoint" "mtastsendpoint" {
 }
 
 resource "azurerm_cdn_endpoint_custom_domain" "mtastscustomdomain" {
-  name            = "${local.cdn_prefix}"
+  name            = local.cdn_prefix
   cdn_endpoint_id = azurerm_cdn_endpoint.mtastsendpoint.id
   host_name       = "${azurerm_dns_cname_record.mta-sts-cname.name}.${data.azurerm_dns_zone.dns-zone.name}"
 }
@@ -106,7 +106,7 @@ resource "azurerm_dns_cname_record" "mta-sts-cname" {
   zone_name           = data.azurerm_dns_zone.dns-zone.name
   resource_group_name = data.azurerm_resource_group.rg.name
   ttl                 = 300
-  target_resource_id = azurerm_cdn_endpoint.mtastsendpoint.id
+  target_resource_id  = azurerm_cdn_endpoint.mtastsendpoint.id
 }
 
 resource "azurerm_dns_cname_record" "cdnverify-mta-sts" {
@@ -140,6 +140,6 @@ resource "azurerm_dns_txt_record" "smtp-tls" {
 }
 
 output "enable_custom_https" {
-  value = "az cdn custom-domain enable-https -g ${data.azurerm_resource_group.rg.name} --profile-name ${azurerm_cdn_profile.cdnmtasts.name} --endpoint-name ${azurerm_cdn_endpoint.mtastsendpoint.name} -n ${azurerm_cdn_endpoint_custom_domain.mtastscustomdomain.name} --min-tls-version 1.2"
+  value       = "az cdn custom-domain enable-https -g ${data.azurerm_resource_group.rg.name} --profile-name ${azurerm_cdn_profile.cdnmtasts.name} --endpoint-name ${azurerm_cdn_endpoint.mtastsendpoint.name} -n ${azurerm_cdn_endpoint_custom_domain.mtastscustomdomain.name} --min-tls-version 1.2"
   description = "defines the command to be run post initial deploy to enable custom https endpoint"
 }
