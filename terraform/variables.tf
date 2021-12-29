@@ -21,8 +21,8 @@ variable "MAX_AGE" {
 }
 
 variable "MX" {
-  type        = string
-  description = "comma separated string of 'mx' records that should be included in mta-sts policy"
+  type        = list
+  description = "list of 'mx' records that should be included in mta-sts policy"
 }
 
 variable "REPORTING_EMAIL" {
