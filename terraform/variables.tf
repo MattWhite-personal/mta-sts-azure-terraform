@@ -32,6 +32,6 @@ variable "REPORTING_EMAIL" {
 }
 
 variable "resource_group" {
-  type = "string"
+  type = string
   description = "resource group that contains existing resources"
 }
