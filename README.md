@@ -17,6 +17,8 @@ The module then deploys the following additional resources:
 
 As discussed on the [azurerm_cdn_endpoint_custom_domain](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_endpoint_custom_domain) docs pages it is not possible to enable HTTPs using Terraform and this just needs to be enabled once after initial deployment.
 
+To get around this a single Azure CLI command can be run to enable the HTTPS endpoint on the custom domain, substitute the resouregroup name
+
 
 ## How to use this Module
 
