@@ -138,3 +138,8 @@ resource "azurerm_dns_txt_record" "smtp-tls" {
     value = "v=TLSRPTv1; rua=${local.tls_rpt_email}"
   }
 }
+
+output "enable_custom_https" {
+  value = "az cdn custom-domain enable-https -g ${data.azurerm_resource_group.rg.name} --profile-name ${azurerm_cdn_profile.cdnmtasts.name} --endpoint-name ${azurerm_cdn_endpoint.mtastsendpoint.name} -n ${azurerm_cdn_endpoint_custom_domain.mtastscustomdomain.name} --min-tls-version 1.2"
+  description = "defines the command to be run post initial deploy to enable custom https endpoint"
+}
