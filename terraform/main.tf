@@ -99,6 +99,11 @@ resource "azurerm_cdn_endpoint_custom_domain" "mtastscustomdomain" {
   name            = local.cdn_prefix
   cdn_endpoint_id = azurerm_cdn_endpoint.mtastsendpoint.id
   host_name       = "${azurerm_dns_cname_record.mta-sts-cname.name}.${data.azurerm_dns_zone.dns-zone.name}"
+  cdn_managed_https {
+    certificate_type = "Dedicated"
+    protcol_type = "ServerNameIndication"
+    tls_version = "TLS12"
+  }
 }
 
 resource "azurerm_dns_cname_record" "mta-sts-cname" {
