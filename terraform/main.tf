@@ -120,6 +120,7 @@ resource "azurerm_dns_cname_record" "cdnverify-mta-sts" {
   resource_group_name = data.azurerm_resource_group.rg.name
   ttl                 = 300
   record              = "cdnverify.${azurerm_cdn_endpoint.mtastsendpoint.name}.azureedge.net"
+  depends_on = [ azurerm_cdn_endpoint_custom_domain.mtastscustomdomain ]
 }
 
 resource "azurerm_dns_txt_record" "mta-sts" {
