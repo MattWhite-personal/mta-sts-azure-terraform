@@ -112,6 +112,7 @@ resource "azurerm_dns_cname_record" "mta-sts-cname" {
   resource_group_name = data.azurerm_resource_group.rg.name
   ttl                 = 300
   target_resource_id  = azurerm_cdn_endpoint.mtastsendpoint.id
+  depends_on = [ azurerm_cdn_endpoint_custom_domain.mtastscustomdomain ]
 }
 
 resource "azurerm_dns_cname_record" "cdnverify-mta-sts" {
